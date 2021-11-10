@@ -31,6 +31,7 @@ export interface AuthenticateOptions {
   successReturnToOrRedirect?: string
   authInfo?: boolean
   session?: boolean
+  state?: string | undefined
 }
 
 export type SingleStrategyCallback = (
@@ -205,10 +206,11 @@ export class AuthenticationRoute<StrategyOrStrategies extends string | Strategy 
        * Strategies should call this function to redirect the user (via their user agent) to a third-party website for authentication.
        */
       strategy.redirect = (url: string, status?: number) => {
-        request.log.trace({ strategy: name, url }, 'passport strategy redirecting')
-
+        const { state } = this.options
+        request.log.trace({ strategy: name, url, state }, 'passport strategy redirecting')
+        const redirectUrl = state ? `${url}${url.includes('?') ? '&' : '?'}state=${state}` : url
         void reply.status(status || 302)
-        void reply.redirect(url)
+        void reply.redirect(redirectUrl)
         resolve()
       }
 
